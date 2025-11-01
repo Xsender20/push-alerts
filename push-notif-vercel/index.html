@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Push Notifications Demo</title>
+</head>
+<body>
+  <h1>Push Notifications Demo</h1>
+  <button id="subscribe">Allow Notifications</button>
+
+  <script>
+    const publicVapidKey = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFQkdKTzFoS1FjbDdLdTN0UklXRjlBdWRBNW95WQprcUJxcm1lN0V4dk9IbC81VmVMQjJTVnY5bElhUGtlMHZpSW5nbXNoNUxYSWcxbE5FQzlObGpCQld3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg";
+
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.register('/sw.js').then(() => console.log('Service Worker registered'));
+
+      document.getElementById('subscribe').addEventListener('click', async () => {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+        });
+
+        await fetch('/api/save-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sub)
+        });
+
+        alert('Notifications activated!');
+      });
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = atob(base64);
+      return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+    }
+  </script>
+</body>
+</html>
